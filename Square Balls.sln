@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.15
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Square Balls", "Square Balls\Square Balls.vcxproj", "{191ECD27-7230-48A0-812B-B9CE572523D1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{191ECD27-7230-48A0-812B-B9CE572523D1}.Debug|x64.ActiveCfg = Debug|x64
+		{191ECD27-7230-48A0-812B-B9CE572523D1}.Debug|x64.Build.0 = Debug|x64
+		{191ECD27-7230-48A0-812B-B9CE572523D1}.Debug|x86.ActiveCfg = Debug|Win32
+		{191ECD27-7230-48A0-812B-B9CE572523D1}.Debug|x86.Build.0 = Debug|Win32
+		{191ECD27-7230-48A0-812B-B9CE572523D1}.Release|x64.ActiveCfg = Release|x64
+		{191ECD27-7230-48A0-812B-B9CE572523D1}.Release|x64.Build.0 = Release|x64
+		{191ECD27-7230-48A0-812B-B9CE572523D1}.Release|x86.ActiveCfg = Release|Win32
+		{191ECD27-7230-48A0-812B-B9CE572523D1}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {821A9B94-FE68-4A80-BAA4-80853D345562}
+	EndGlobalSection
+EndGlobal
