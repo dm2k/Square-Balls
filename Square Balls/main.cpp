@@ -1,6 +1,8 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 
+float ground = 250.f;
+
 sf::Vector2f right = { 1.f, 0.f },
 				left = { -1.f, 0.f},
 				up = { 0.f, -1.f },
@@ -38,6 +40,8 @@ class Player: public Entity
 {
 public:
 	
+	bool onGround;
+
 	Player(sf::Vector2f pos = {0.f, 0.f}) {
 		shape.setPosition(pos);
 		shape.setSize({ 100.f, 100.f });
@@ -45,8 +49,24 @@ public:
 	}
 
 	void update() {
-		shape.move(vel);
-		vel *= 0.75f;
+
+
+		shape.move(vel.x, 0);
+		vel.x /= 2;
+
+
+
+		if (!onGround && shape.getPosition().y >= ground) {
+			shape.move(0, ground - shape.getPosition().y);
+			onGround = true;
+			vel.y = 0;
+		}
+		else {
+			onGround = false;
+			vel.y += 0.3f;
+			shape.move(0, vel.y);
+		}
+
 	}
 
 };
