@@ -40,9 +40,11 @@ public:
 
 
 	virtual void update() = 0;
+
 	void draw(sf::RenderWindow & window) {
 		window.draw(shape);
 	};
+
 
 	int Collision(int dir) {
 		int res = 0;
@@ -94,6 +96,53 @@ public:
 	};
 };
 
+class Bullet : public Entity
+{
+public:
+
+	bool active;
+	sf::Vector2f base_vel;
+
+
+	Bullet(sf::Vector2f pos = { 0.f, 0.f }, sf::Vector2f v = {4.f, 0.f}) {
+		shape.setPosition(pos);
+		shape.setSize({ tileSize*1.25f, tileSize*0.125f });
+		shape.setFillColor(sf::Color::Magenta);
+		active = true;
+		vel = v;
+		base_vel = v;
+	}
+
+
+	void update() {
+
+
+		shape.move(vel.x, 0);
+
+		int isHit;
+
+		isHit= Collision(0);
+
+		if (isHit == 1) {
+			vel.x = -base_vel.x;
+		}
+		else if (isHit == 2) {
+			vel.x = base_vel.x;
+		}
+
+		shape.move(0, vel.y);
+
+		isHit = Collision(1);
+
+		if (isHit != 0) {
+			active = false;
+		}
+
+		vel.y += gt;
+	};
+
+
+};
 
 class Enemy : public Entity
 {
@@ -201,6 +250,7 @@ int main() {
 	
 	window.setView(view);
 
+	Bullet maimer({ -1000,-1000 });
 
 	Enemy goodboy({ 800,300 });	
 
@@ -233,9 +283,18 @@ int main() {
 		{
 			hero.vel += (down);
 		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+			maimer.shape.setPosition( hero.shape.getPosition());
+			maimer.active = true;
+		}
+
+
+		if (goodboy.onGround) goodboy.vel += 5.f*(up);
 
 		goodboy.update();
 		hero.update();
+		if (maimer.active) maimer.update();
+
 
 		if (hero.shape.getGlobalBounds().intersects(goodboy.shape.getGlobalBounds())) {
 			hero.shape.setFillColor(goodboy.shape.getFillColor());
@@ -269,6 +328,7 @@ int main() {
 
 		goodboy.draw(window);
 		hero.draw(window);
+		maimer.draw(window);
 
 		window.display();
 	}
