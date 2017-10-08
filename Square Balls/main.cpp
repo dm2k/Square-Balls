@@ -1,9 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <list>
 
-float ground = 600.f, 
-	gt = 0.01f, 
-	rub = 0.8f;
 
 sf::Vector2f right = { 1.f, 0.f },
 				left = { -1.f, 0.f},
@@ -12,9 +10,24 @@ sf::Vector2f right = { 1.f, 0.f },
 
 float tileSize = 50.f;
 
-std::string TileMap[10] = {
-	"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBb",
+std::string TileMap[25] = {
+	"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
 	"B                       BBBB                                           BBBBBB                                       B",
+	"B                                                                      BBBBBB                         SSS           B",
+	"B                                                                      BBBBBB                         SSS           B",
+	"B                                                                      BBBBBB                         SSS           B",
+	"B                                                                      BBBBBB                         SSS           B",
+	"B                                                                      BBBBBB                         SSS           B",
+	"B                                                                      BBBBBB                         SSS           B",
+	"B                                                                      BBBBBB                         SSS           B",
+	"B                                                                      BBBBBB                         SSS           B",
+	"B                                                                      BBBBBB                         SSS           B",
+	"B                                                                      BBBBBB                         SSS           B",
+	"B                                                                      BBBBBB                         SSS           B",
+	"B                                                                      BBBBBB                         SSS           B",
+	"B                                                                      BBBBBB                         SSS           B",
+	"B                                                                      BBBBBB                         SSS           B",
+	"B                                                                      BBBBBB                         SSS           B",
 	"B                                                                      BBBBBB                         SSS           B",
 	"BBBB                SSS                               BBB              BBBBBB                  BB                   B",
 	"B                            BBBBBBBBB     SSS        BBBB                                     BBBB                 B",
@@ -26,8 +39,14 @@ std::string TileMap[10] = {
 }
 ;
 
-int H = 10;
+int H = 25;
 int W = TileMap[0].size();
+
+float ground = H * tileSize,
+	gt = 0.01f,
+	rub = 0.8f;
+
+
 
 sf::RectangleShape tmp_rect({ tileSize, tileSize });
 
@@ -37,7 +56,7 @@ public:
 	sf::Vector2f vel;
 	sf::RectangleShape shape;
 	bool onGround;
-
+	bool exists;
 
 	virtual void update() = 0;
 
@@ -56,12 +75,12 @@ public:
 					if (TileMap[i][j] == 'B') {
 						if (vel.x > 0) {
 							shape.setPosition(j * tileSize - shape.getSize().x, shape.getPosition().y);
-							vel.x = 0.f;
+							//vel.x = 0.f;
 							res += 1;
 						}
 						if (vel.x < 0) {
 							shape.setPosition(j * tileSize + tileSize, shape.getPosition().y);
-							vel.x = 0.f;
+							//vel.x = 0.f;
 							res += 2;
 						}
 
@@ -71,13 +90,13 @@ public:
 					if (TileMap[i][j] == 'B') {
 						if (vel.y > 0) {
 							shape.setPosition(shape.getPosition().x, i * tileSize - shape.getSize().y);
-							vel.y = 0;
+							//vel.y = 0;
 							onGround = true;
 							res += 4;
 						}
 						if (vel.y < 0) {
 							shape.setPosition(shape.getPosition().x, i * tileSize + tileSize);
-							vel.y = 0;
+							//vel.y = 0;
 							res += 8;
 						}
 
@@ -102,9 +121,11 @@ public:
 
 	bool active;
 	sf::Vector2f base_vel;
-
+	int timer;
 
 	Bullet(sf::Vector2f pos = { 0.f, 0.f }, sf::Vector2f v = {4.f, 0.f}) {
+		exists = true;
+		timer = 500;
 		shape.setPosition(pos);
 		shape.setSize({ tileSize*1.25f, tileSize*0.125f });
 		shape.setFillColor(sf::Color::Magenta);
@@ -115,8 +136,7 @@ public:
 
 
 	void update() {
-
-
+		
 		shape.move(vel.x, 0);
 
 		int isHit;
@@ -134,11 +154,18 @@ public:
 
 		isHit = Collision(1);
 
-		if (isHit != 0) {
-			active = false;
+		if (isHit == 4 || isHit == 8) {
+			vel.y = -vel.y;
 		}
 
 		vel.y += gt;
+
+		--timer;
+
+		if (timer <= 0) {
+			exists = false;
+		}
+
 	};
 
 
@@ -151,6 +178,7 @@ public:
 	bool alive;
 
 	Enemy(sf::Vector2f pos = { 0.f, 0.f }) {
+		exists = true;
 		shape.setPosition(pos);
 		shape.setSize({ tileSize*0.95f, tileSize*0.95f });
 		shape.setFillColor(sf::Color::Blue);
@@ -186,7 +214,11 @@ public:
 			shape.move(0, vel.y);
 		}
 
-		Collision(1);
+		isHit = Collision(1);
+
+		if (isHit & 4) {
+			vel.y = 3.f * (up.y);
+		}
 
 	};
 
@@ -200,6 +232,7 @@ public:
 	
 
 	Player(sf::Vector2f pos = {0.f, 0.f}) {
+		exists = true;
 		shape.setPosition(pos);
 		shape.setSize({ tileSize*1.95f, tileSize*1.95f });
 		shape.setFillColor(sf::Color::Green);
@@ -250,11 +283,20 @@ int main() {
 	
 	window.setView(view);
 
-	Bullet maimer({ -1000,-1000 });
+	//Bullet maimer({ -1000,-1000 });
 
-	Enemy goodboy({ 800,300 });	
+	//Enemy goodboy({ 800,300 });	
 
 	Player hero({ 250,250 });
+
+
+	std::list<Entity*> entities;
+	std::list<Entity*>::iterator it;
+
+	entities.push_back(new Enemy({ 800,300 }));
+	
+	//entities.push_back(&maimer);
+
 
 	while (window.isOpen())
 	{
@@ -284,21 +326,44 @@ int main() {
 			hero.vel += (down);
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-			maimer.shape.setPosition( hero.shape.getPosition());
-			maimer.active = true;
+			//maimer.shape.setPosition( hero.shape.getPosition());
+			//maimer.active = true;
+
+			entities.push_back(new Bullet(hero.shape.getPosition()));
+
 		}
 
 
-		if (goodboy.onGround) goodboy.vel += 5.f*(up);
 
-		goodboy.update();
+		// if (goodboy.onGround) goodboy.vel += 5.f*(up);
+
+		
+		for (it = entities.begin(); it != entities.end();) {
+			Entity *e = *it;
+
+			e->update();
+
+			if (e->exists) {
+				++it;
+			} else {
+				it = entities.erase(it);
+				delete e;
+			}
+
+		}
+		
+
+		//goodboy.update();
+		
 		hero.update();
-		if (maimer.active) maimer.update();
+		
+		//if (maimer.active) maimer.update();
 
-
+		/*
 		if (hero.shape.getGlobalBounds().intersects(goodboy.shape.getGlobalBounds())) {
 			hero.shape.setFillColor(goodboy.shape.getFillColor());
 		}
+		*/
 
 		view.setCenter(hero.shape.getPosition());
 		window.setView(view);
@@ -326,9 +391,13 @@ int main() {
 			}
 		}
 
-		goodboy.draw(window);
+		for (it = entities.begin(); it != entities.end(); ++it) {
+			(*it)->draw(window);
+		}
+
+		// goodboy.draw(window);
 		hero.draw(window);
-		maimer.draw(window);
+		// maimer.draw(window);
 
 		window.display();
 	}
