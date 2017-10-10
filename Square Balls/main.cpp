@@ -10,6 +10,11 @@ sf::Vector2f right = { 1.f, 0.f },
 
 float tileSize = 50.f;
 
+sf::Vector2f operator*(float m, sf::Vector2f v) {
+	return { v.x * m, v.y * m };
+}
+
+
 std::string TileMap[25] = {
 	"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
 	"B                       BBBB                                           BBBBBB                                       B",
@@ -123,7 +128,7 @@ public:
 	sf::Vector2f base_vel;
 	int timer;
 
-	Bullet(sf::Vector2f pos = { 0.f, 0.f }, sf::Vector2f v = {4.f, 0.f}) {
+	Bullet(sf::Vector2f pos = { 0.f, 0.f }, sf::Vector2f v = {10.f, 0.f}) {
 		exists = true;
 		timer = 500;
 		shape.setPosition(pos);
@@ -144,10 +149,10 @@ public:
 		isHit= Collision(0);
 
 		if (isHit == 1) {
-			vel.x = -base_vel.x;
+			vel.x = -vel.x;
 		}
 		else if (isHit == 2) {
-			vel.x = base_vel.x;
+			vel.x = - vel.x;
 		}
 
 		shape.move(0, vel.y);
@@ -228,7 +233,8 @@ public:
 class Player: public Entity
 {
 public:
-	
+
+	float dir;
 	
 
 	Player(sf::Vector2f pos = {0.f, 0.f}) {
@@ -236,11 +242,15 @@ public:
 		shape.setPosition(pos);
 		shape.setSize({ tileSize*1.95f, tileSize*1.95f });
 		shape.setFillColor(sf::Color::Green);
+		dir = 1.f;
 	}
 
 
 	void update() {
 
+		if (vel.x != 0) {
+			dir = vel.x > 0 ? 1.f : -1.f;
+		}
 
 		shape.move(vel.x, 0);
 
@@ -319,7 +329,7 @@ int main() {
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
 		{
-			if (hero.onGround) hero.vel += 5.f*(up);
+			if (hero.onGround) { hero.onGround = false; hero.vel = 5.f*(up); }
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
 		{
@@ -329,7 +339,10 @@ int main() {
 			//maimer.shape.setPosition( hero.shape.getPosition());
 			//maimer.active = true;
 
-			entities.push_back(new Bullet(hero.shape.getPosition()));
+			sf::Vector2f s; 
+			if (hero.dir == 1.f) s = { 10.f, 0.f };
+			else  s = { -10.f, 0.f };
+			entities.push_back(new Bullet(hero.shape.getPosition(),s ));
 
 		}
 
