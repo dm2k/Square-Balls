@@ -182,11 +182,11 @@ public:
 
 	bool alive;
 
-	Enemy(sf::Vector2f pos = { 0.f, 0.f }) {
+	Enemy(sf::Vector2f pos = { 0.f, 0.f }, sf::Color ecolor = sf::Color::Blue) {
 		exists = true;
 		shape.setPosition(pos);
 		shape.setSize({ tileSize*0.95f, tileSize*0.95f });
-		shape.setFillColor(sf::Color::Blue);
+		shape.setFillColor(ecolor);
 		alive = true;
 		vel.x = 1.f;
 	}
@@ -208,7 +208,7 @@ public:
 		//vel.x *= rub * 1.5f;
 
 
-		if (!onGround && shape.getPosition().y >= ground) {
+		if (!onGround  && shape.getPosition().y >= ground) {
 			shape.move(0, ground - shape.getPosition().y);
 			onGround = true;
 			vel.y = 0;
@@ -273,8 +273,11 @@ public:
 			shape.move(0, vel.y);
 		}
 
-		Collision(1);
+		int ay = Collision(1);
 
+		if (ay == 4 || ay == 8) {
+			vel.y = 0.f;
+		}
 	};
 
 };
@@ -303,8 +306,16 @@ int main() {
 	std::list<Entity*> entities;
 	std::list<Entity*>::iterator it;
 
-	entities.push_back(new Enemy({ 800,300 }));
+	std::list<Entity*> enemies;
+	std::list<Entity*>::iterator it_enemy;
+
+	std::list<Entity*> bullets;
+	std::list<Entity*>::iterator it_bullet;
+
+	enemies.push_back(new Enemy({ 800,300 }));
+	enemies.push_back(new Enemy({ 300,200 }, sf::Color::White));
 	
+
 	//entities.push_back(&maimer);
 
 
@@ -342,7 +353,7 @@ int main() {
 			sf::Vector2f s; 
 			if (hero.dir == 1.f) s = { 10.f, 0.f };
 			else  s = { -10.f, 0.f };
-			entities.push_back(new Bullet(hero.shape.getPosition(),s ));
+			bullets.push_back(new Bullet(hero.shape.getPosition(),s ));
 
 		}
 
@@ -350,8 +361,21 @@ int main() {
 
 		// if (goodboy.onGround) goodboy.vel += 5.f*(up);
 
+
+		for (it_enemy = enemies.begin(); it_enemy != enemies.end();++it_enemy) {
+			Entity *enemy = *it_enemy;
+			for (it_bullet = bullets.begin(); it_bullet != bullets.end();++it_bullet) {
+				Entity *bullet = *it_bullet;
+					if (enemy->shape.getGlobalBounds().intersects(bullet->shape.getGlobalBounds())) {
+						bullet->shape.setFillColor(enemy->shape.getFillColor());
+						enemy->shape.setFillColor(bullet->shape.getFillColor());
+					}
+
+			}
+		}
+
 		
-		for (it = entities.begin(); it != entities.end();) {
+		for (it = bullets.begin(); it != bullets.end();) {
 			Entity *e = *it;
 
 			e->update();
@@ -359,12 +383,30 @@ int main() {
 			if (e->exists) {
 				++it;
 			} else {
-				it = entities.erase(it);
+				it = bullets.erase(it);
 				delete e;
 			}
 
 		}
 		
+
+		for (it = enemies.begin(); it != enemies.end();) {
+			Entity *e = *it;
+
+			e->update();
+
+			if (e->exists) {
+				++it;
+			}
+			else {
+				it = enemies.erase(it);
+				delete e;
+			}
+
+		}
+
+
+
 
 		//goodboy.update();
 		
@@ -404,9 +446,14 @@ int main() {
 			}
 		}
 
-		for (it = entities.begin(); it != entities.end(); ++it) {
+		for (it = bullets.begin(); it != bullets.end(); ++it) {
 			(*it)->draw(window);
 		}
+
+		for (it = enemies.begin(); it != enemies.end(); ++it) {
+			(*it)->draw(window);
+		}
+
 
 		// goodboy.draw(window);
 		hero.draw(window);
