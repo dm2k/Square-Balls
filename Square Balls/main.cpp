@@ -1,6 +1,10 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <list>
+#include <map>
+#include <random>
+#include <cmath>
+
 
 
 sf::Vector2f right = { 1.f, 0.f },
@@ -20,21 +24,21 @@ std::string TileMap[25] = {
 	"B                       BBBB                                           BBBBBB                                       B",
 	"B                                                                      BBBBBB                         SSS           B",
 	"B                                                                      BBBBBB                         SSS           B",
+	"B                                                                      SSSSSS                         BBBBBBBBBBB   B",
+	"B                                                                                                     SSS           B",
+	"B                   BBBBBBBBBBBBBBBBBBBBBB                             BBBBBB                         SSS           B",
 	"B                                                                      BBBBBB                         SSS           B",
 	"B                                                                      BBBBBB                         SSS           B",
+	"B    BBBBBBBBBBBBBBBBBBB                                               BBBBBB                         SSS           B",
+	"B                                                                                             BBBBBBBBBSBBBBBBBB    B",
 	"B                                                                      BBBBBB                         SSS           B",
 	"B                                                                      BBBBBB                         SSS           B",
+	"BBBBBB                              BBBBBBBBBBBBBBBBB                  BBBBBB                         SSS           B",
+	"BSSSSS                                                                 BBBBBB                         SSS           B",
+	"B                                                                                                     SSS           B",
+	"B                                                                                                     SSS           B",
 	"B                                                                      BBBBBB                         SSS           B",
-	"B                                                                      BBBBBB                         SSS           B",
-	"B                                                                      BBBBBB                         SSS           B",
-	"B                                                                      BBBBBB                         SSS           B",
-	"B                                                                      BBBBBB                         SSS           B",
-	"B                                                                      BBBBBB                         SSS           B",
-	"B                                                                      BBBBBB                         SSS           B",
-	"B                                                                      BBBBBB                         SSS           B",
-	"B                                                                      BBBBBB                         SSS           B",
-	"B                                                                      BBBBBB                         SSS           B",
-	"BBBB                SSS                               BBB              BBBBBB                  BB                   B",
+	"BBBBBB              SSS                               BBB              BBBBBB                  BB                   B",
 	"B                            BBBBBBBBB     SSS        BBBB                                     BBBB                 B",
 	"B           BB               BBBBBBBBBB               BBBBBBBBBBBB                             BBBBBB               B",
 	"B        BBBBBBB             BBBBBBBBBB               BBBBBBBBBBBB                             BBBBBBBB        SSSSSB",
@@ -55,6 +59,7 @@ float ground = H * tileSize,
 
 sf::RectangleShape tmp_rect({ tileSize, tileSize });
 
+const int i_up = 8, i_down = 4, i_left = 2, i_right = 1;
 
 class Entity {
 public:
@@ -79,14 +84,14 @@ public:
 				if (dir == 0) {
 					if (TileMap[i][j] == 'B') {
 						if (vel.x > 0) {
-							shape.setPosition(j * tileSize - shape.getSize().x, shape.getPosition().y);
+							shape.setPosition(j * tileSize - shape.getSize().x - 3, shape.getPosition().y);
 							//vel.x = 0.f;
-							res += 1;
+							res += i_right;
 						}
 						if (vel.x < 0) {
-							shape.setPosition(j * tileSize + tileSize, shape.getPosition().y);
+							shape.setPosition(j * tileSize + tileSize + 3, shape.getPosition().y);
 							//vel.x = 0.f;
-							res += 2;
+							res += i_left;
 						}
 
 					}
@@ -94,15 +99,15 @@ public:
 				else if (dir == 1) {
 					if (TileMap[i][j] == 'B') {
 						if (vel.y > 0) {
-							shape.setPosition(shape.getPosition().x, i * tileSize - shape.getSize().y);
+							shape.setPosition(shape.getPosition().x, i * tileSize - shape.getSize().y-1);
 							//vel.y = 0;
 							onGround = true;
-							res += 4;
+							res += i_down;
 						}
 						if (vel.y < 0) {
-							shape.setPosition(shape.getPosition().x, i * tileSize + tileSize);
+							shape.setPosition(shape.getPosition().x, i * tileSize + tileSize + 1);
 							//vel.y = 0;
-							res += 8;
+							res += i_up;
 						}
 
 					}
@@ -132,7 +137,7 @@ public:
 		exists = true;
 		timer = 500;
 		shape.setPosition(pos);
-		shape.setSize({ tileSize*1.25f, tileSize*0.125f });
+		shape.setSize({ tileSize, tileSize/8 });
 		shape.setFillColor(sf::Color::Magenta);
 		active = true;
 		vel = v;
@@ -185,7 +190,7 @@ public:
 	Enemy(sf::Vector2f pos = { 0.f, 0.f }, sf::Color ecolor = sf::Color::Blue) {
 		exists = true;
 		shape.setPosition(pos);
-		shape.setSize({ tileSize*0.95f, tileSize*0.95f });
+		shape.setSize({ tileSize / 4 * 3, tileSize / 4 * 3 });
 		shape.setFillColor(ecolor);
 		alive = true;
 		vel.x = 1.f;
@@ -230,23 +235,38 @@ public:
 
 };
 
+const int weapon_delay = 10;
+
 class Player: public Entity
 {
 public:
 
 	float dir;
-	
+	int weapon_timer;
+	bool weapon_ready;
 
 	Player(sf::Vector2f pos = {0.f, 0.f}) {
 		exists = true;
 		shape.setPosition(pos);
-		shape.setSize({ tileSize*1.95f, tileSize*1.95f });
+		shape.setSize({ tileSize/2 - 5.f, tileSize - 5.f });
 		shape.setFillColor(sf::Color::Green);
 		dir = 1.f;
+		weapon_ready = true;
+		weapon_timer = weapon_delay;
 	}
 
 
 	void update() {
+
+		if (!weapon_ready) {
+			--weapon_timer;
+
+			if (weapon_timer == 0) {
+				weapon_ready = true;
+				weapon_timer = weapon_delay;
+			}
+		}
+
 
 		if (vel.x != 0) {
 			dir = vel.x > 0 ? 1.f : -1.f;
@@ -261,7 +281,7 @@ public:
 		//else
 			//vel.x *= rub * 1.5f;
 
-
+		/*
 		if (!onGround && shape.getPosition().y >= ground) {
 			shape.move(0, ground - shape.getPosition().y);
 			onGround = true;
@@ -272,12 +292,25 @@ public:
 			vel.y += gt;
 			shape.move(0, vel.y);
 		}
+		*/
+
+			
+
+		if (!onGround) {
+			shape.move(0, vel.y);
+			vel.y += gt;
+		}
 
 		int ay = Collision(1);
 
 		if (ay == 4 || ay == 8) {
 			vel.y = 0.f;
+			onGround = true;
 		}
+		else {
+			onGround = false;
+		}
+
 	};
 
 };
@@ -315,7 +348,7 @@ int main() {
 	enemies.push_back(new Enemy({ 800,300 }));
 	enemies.push_back(new Enemy({ 300,200 }, sf::Color::White));
 	
-
+	bool pop_enemy = false;
 	//entities.push_back(&maimer);
 
 
@@ -332,7 +365,7 @@ int main() {
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
 		{
-			 hero.vel += left;
+			hero.vel += left;
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
 		{
@@ -350,13 +383,21 @@ int main() {
 			//maimer.shape.setPosition( hero.shape.getPosition());
 			//maimer.active = true;
 
-			sf::Vector2f s; 
-			if (hero.dir == 1.f) s = { 10.f, 0.f };
-			else  s = { -10.f, 0.f };
-			bullets.push_back(new Bullet(hero.shape.getPosition(),s ));
-
+			if (hero.weapon_ready) {
+				sf::Vector2f s;
+				if (hero.dir == 1.f) s = { 10.f, 0.f };
+				else  s = { -10.f, 0.f };
+				bullets.push_back(new Bullet(hero.shape.getPosition(), s));
+				hero.weapon_ready = false;
+			}
 		}
 
+		if (pop_enemy)
+		{
+			enemies.push_back(new Enemy({ 300,200 }, sf::Color::White));
+			enemies.push_back(new Enemy({ 800,500 }, sf::Color::White));
+			pop_enemy = false;
+		}
 
 
 		// if (goodboy.onGround) goodboy.vel += 5.f*(up);
@@ -367,8 +408,12 @@ int main() {
 			for (it_bullet = bullets.begin(); it_bullet != bullets.end();++it_bullet) {
 				Entity *bullet = *it_bullet;
 					if (enemy->shape.getGlobalBounds().intersects(bullet->shape.getGlobalBounds())) {
-						bullet->shape.setFillColor(enemy->shape.getFillColor());
-						enemy->shape.setFillColor(bullet->shape.getFillColor());
+						//bullet->shape.setFillColor(enemy->shape.getFillColor());
+						bullet->exists = false;
+						//enemy->shape.setFillColor(bullet->shape.getFillColor());
+						enemy->exists = false;
+
+						pop_enemy = true;
 					}
 
 			}
