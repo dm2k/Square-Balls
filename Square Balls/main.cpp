@@ -348,7 +348,7 @@ int main() {
 	enemies.push_back(new Enemy({ 800,300 }));
 	enemies.push_back(new Enemy({ 300,200 }, sf::Color::White));
 	
-	bool pop_enemy = false;
+	int pop_enemy = 1000;
 	//entities.push_back(&maimer);
 
 
@@ -392,11 +392,12 @@ int main() {
 			}
 		}
 
-		if (pop_enemy)
+		if (pop_enemy>1)
 		{
 			enemies.push_back(new Enemy({ 300,200 }, sf::Color::White));
+			--pop_enemy;
 			enemies.push_back(new Enemy({ 800,500 }, sf::Color::White));
-			pop_enemy = false;
+			--pop_enemy;
 		}
 
 
@@ -413,7 +414,7 @@ int main() {
 						//enemy->shape.setFillColor(bullet->shape.getFillColor());
 						enemy->exists = false;
 
-						pop_enemy = true;
+						++pop_enemy;
 					}
 
 			}
