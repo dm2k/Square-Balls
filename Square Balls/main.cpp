@@ -1,4 +1,7 @@
 #include <SFML/Graphics.hpp>
+
+#include <SFML/Window/Touch.hpp>
+
 #include <iostream>
 #include <list>
 #include <map>
@@ -20,36 +23,46 @@ sf::Vector2f operator*(float m, sf::Vector2f v) {
 
 
 std::string TileMap[25] = {
-	"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-	"B                       BBBB                                           BBBBBB                                       B",
-	"B                                                                      BBBBBB                         SSS           B",
-	"B                                                                      BBBBBB                         SSS           B",
-	"B                                                                      SSSSSS                         BBBBBBBBBBB   B",
-	"B                                                                                                     SSS           B",
-	"B                   BBBBBBBBBBBBBBBBBBBBBB                             BBBBBB                         SSS           B",
-	"B                                                                      BBBBBB                         SSS           B",
-	"B                                                                      BBBBBB                         SSS           B",
-	"B    BBBBBBBBBBBBBBBBBBB                                               BBBBBB                         SSS           B",
-	"B                                                                                             BBBBBBBBBSBBBBBBBB    B",
-	"B                                                                      BBBBBB                         SSS           B",
-	"B                                                                      BBBBBB                         SSS           B",
-	"BBBBBB                              BBBBBBBBBBBBBBBBB                  BBBBBB                         SSS           B",
-	"BSSSSS                                                                 BBBBBB                         SSS           B",
-	"B                                                                                                     SSS           B",
-	"B                                                                                                     SSS           B",
-	"B                                                                      BBBBBB                         SSS           B",
-	"BBBBBB              SSS                               BBB              BBBBBB                  BB                   B",
-	"B                            BBBBBBBBB     SSS        BBBB                                     BBBB                 B",
-	"B           BB               BBBBBBBBBB               BBBBBBBBBBBB                             BBBBBB               B",
-	"B        BBBBBBB             BBBBBBBBBB               BBBBBBBBBBBB                             BBBBBBBB        SSSSSB",
-	"B        BBBBBBB             BBBBBBBBBBB         SSSSSSSSSSBBBBBBBBBBB       SSS               BBBBBBBBBB      SSSSSB",
-	"B        BBBBBBB            BBBBBBBBBBBBBBB      SSSSSSSSSSBBBBBBBBBBBBBB                      BBBBBBBBBBB     SSSSSB",
-	"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+	"                                                  BBBBBBBBBBBB         B    B      BBBBBBBBBBBBBBBBBBBBBBBBB         ",
+	"                        BBBB                                           B    B                                        ",
+	"                                                                       B    B                         SSS            ",
+	"     BBBBBBBBBB                                                        BB BBB                         SSS            ",
+	"                                                                       SSSSSS                         BBBBBBBBBBB    ",
+	"                                                                                                      SSS            ",
+	"                    BBBBBBBBBBBBBBBBBBBBBB                                                            SSS            ",
+	"                                                                                   BBBBB              SSS            ",
+	"                                                                                                      SSS            ",
+	"     BBBBBBBBBBBBBBBBBBB                          BBBBBBBBBBBB                                        SSS            ",
+	"                                                                                              BBBBBB   S  BBBBBB     ",
+	"                                                                        BBB B                         SSS            ",
+	"                                                                       BBBBB                          SSS            ",
+	"BBBBBB                              BBBBBBBBBBBBBBBBB                  BBBBBB                         SSS            ",
+	"BSSSSS                                                                  BBB B                         SSS            ",
+	"               BBBBBBBBBBB                                                           BBBBBB           SSS            ",
+	"                                                                                                      SSS            ",
+	"B                                                                      BBBBBB                         SSS            ",
+	"BBBBBB              SSS                               BBB              BBBBBB                  BB                    ",
+	"B                            BBBBBBBBB     SSS        BBBB                                     BBBB                  ",
+	"            BB               BBBBBBBBBB               BBBBBBBBBBBB                   BBBBB     BBBBBB                ",
+	"B        BBBBBBB             BBBBBBBBBB               BBBBBBBBBBB                              BBBBBBBB        SSSSS ",
+	"         BBBBBBB             BBBBBBBBBBB         SSSSSSSSSSBBBBBB  BBB       SSS               BBBBBBBBBB      SSSSS ",
+	"B        BBBBBBB            BBBBBBBBBBBBBBB      SSSSSSSSSSBBBBBB   BBB                        BBBBBBBBBBB     SSSSS ",
+	"BB       BBBBBBBBBB        BBBBBBBBBBBBBBBB            BBBBBBBBBBB                             BBBBBBBBBBBBB    BBBBB"
 }
 ;
 
 int H = 25;
 int W = TileMap[0].size();
+
+char getTile(int i, int j) {
+	//auto t = std::div(i, H);
+	//auto s = std::div(j, W);
+	//return TileMap[t.quot >= 0 ? t.rem : t.rem + H ][s.quot >= 0 ? s.rem : s.rem + W];
+	if (i < 0 || j < 0)
+		return 'B';
+	else
+		return TileMap[i % H ][j % W ];
+}
 
 float ground = H * tileSize,
 	gt = 0.01f,
@@ -74,15 +87,13 @@ public:
 		window.draw(shape);
 	};
 
-
 	int Collision(int dir) {
 		int res = 0;
 		for (int i = shape.getPosition().y / tileSize; i < (shape.getPosition().y + shape.getSize().y) / tileSize; ++i)
 			for (int j = shape.getPosition().x / tileSize; j < (shape.getPosition().x + shape.getSize().x) / tileSize; ++j)
 			{
-
 				if (dir == 0) {
-					if (TileMap[i][j] == 'B') {
+					if (getTile(i,j) == 'B') {
 						if (vel.x > 0) {
 							shape.setPosition(j * tileSize - shape.getSize().x - 3, shape.getPosition().y);
 							//vel.x = 0.f;
@@ -93,11 +104,10 @@ public:
 							//vel.x = 0.f;
 							res += i_left;
 						}
-
 					}
 				}
 				else if (dir == 1) {
-					if (TileMap[i][j] == 'B') {
+					if (getTile(i,j) == 'B') {
 						if (vel.y > 0) {
 							shape.setPosition(shape.getPosition().x, i * tileSize - shape.getSize().y-1);
 							//vel.y = 0;
@@ -109,17 +119,13 @@ public:
 							//vel.y = 0;
 							res += i_up;
 						}
-
 					}
-
 				}
 
-
-				if (TileMap[i][j] == 'S') {
-					TileMap[i][j] = ' ';
+				if (getTile(i,j) == 'S') {
+					//getTile(i,j) = ' ';
 					res += 16;
 				}
-
 			}
 		return res;
 	};
@@ -133,17 +139,16 @@ public:
 	sf::Vector2f base_vel;
 	int timer;
 
-	Bullet(sf::Vector2f pos = { 0.f, 0.f }, sf::Vector2f v = {10.f, 0.f}) {
+	Bullet(sf::Vector2f pos = { 0.f, 0.f }, sf::Vector2f v = {10.f, 0.f}, sf::Color col = sf::Color::Magenta) {
 		exists = true;
 		timer = 500;
 		shape.setPosition(pos);
 		shape.setSize({ tileSize, tileSize/8 });
-		shape.setFillColor(sf::Color::Magenta);
+		shape.setFillColor(col);
 		active = true;
 		vel = v;
 		base_vel = v;
 	}
-
 
 	void update() {
 		
@@ -175,10 +180,7 @@ public:
 		if (timer <= 0) {
 			exists = false;
 		}
-
 	};
-
-
 };
 
 class Enemy : public Entity
@@ -186,6 +188,9 @@ class Enemy : public Entity
 public:
 
 	bool alive;
+	bool ready_to_shoot;
+	int reload_timer;
+
 
 	Enemy(sf::Vector2f pos = { 0.f, 0.f }, sf::Color ecolor = sf::Color::Blue) {
 		exists = true;
@@ -194,11 +199,21 @@ public:
 		shape.setFillColor(ecolor);
 		alive = true;
 		vel.x = 1.f;
+		reload_timer = 2500;
+		ready_to_shoot = true;
 	}
 
 
 	void update() {
 
+		if (!ready_to_shoot) {
+			--reload_timer;
+
+			if (!reload_timer) {
+				ready_to_shoot = true;
+				reload_timer = 2500;
+			}
+		}
 
 		shape.move(vel.x, 0);
 
@@ -229,10 +244,7 @@ public:
 		if (isHit & 4) {
 			vel.y = 3.f * (up.y);
 		}
-
 	};
-
-
 };
 
 const int weapon_delay = 10;
@@ -244,9 +256,11 @@ public:
 	float dir;
 	int weapon_timer;
 	bool weapon_ready;
+	int health;
 
 	Player(sf::Vector2f pos = {0.f, 0.f}) {
 		exists = true;
+		health = 0;
 		shape.setPosition(pos);
 		shape.setSize({ tileSize/2 - 5.f, tileSize - 5.f });
 		shape.setFillColor(sf::Color::Green);
@@ -254,7 +268,6 @@ public:
 		weapon_ready = true;
 		weapon_timer = weapon_delay;
 	}
-
 
 	void update() {
 
@@ -266,7 +279,6 @@ public:
 				weapon_timer = weapon_delay;
 			}
 		}
-
 
 		if (vel.x != 0) {
 			dir = vel.x > 0 ? 1.f : -1.f;
@@ -292,9 +304,7 @@ public:
 			vel.y += gt;
 			shape.move(0, vel.y);
 		}
-		*/
-
-			
+		*/	
 
 		if (!onGround) {
 			shape.move(0, vel.y);
@@ -310,17 +320,12 @@ public:
 		else {
 			onGround = false;
 		}
-
 	};
-
 };
-
-
 
 int main() {
 
 	std::cout << "Yeah";
-
 
 	sf::RenderWindow window(sf::VideoMode(1800, 600+tileSize*2.f), "Square Balls!");
 	window.setFramerateLimit(120);
@@ -335,22 +340,23 @@ int main() {
 
 	Player hero({ 250,250 });
 
-
 	std::list<Entity*> entities;
 	std::list<Entity*>::iterator it;
 
-	std::list<Entity*> enemies;
-	std::list<Entity*>::iterator it_enemy;
+	std::list<Enemy*> enemies;
+	std::list<Enemy*>::iterator it_enemy;
 
-	std::list<Entity*> bullets;
-	std::list<Entity*>::iterator it_bullet;
+	std::list<Bullet*> bullets;
+	std::list<Bullet*>::iterator it_bullet;
+
+	std::list<Bullet*> enemy_bullets;
+	std::list<Bullet*>::iterator it_enemy_bullet;
 
 	enemies.push_back(new Enemy({ 800,300 }));
 	enemies.push_back(new Enemy({ 300,200 }, sf::Color::White));
 	
-	int pop_enemy = 1000;
+	int pop_enemy = 100;
 	//entities.push_back(&maimer);
-
 
 	while (window.isOpen())
 	{
@@ -359,8 +365,6 @@ int main() {
 		{
 			if (event.type == sf::Event::Closed)
 				window.close();
-
-
 		}
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
@@ -391,8 +395,22 @@ int main() {
 				hero.weapon_ready = false;
 			}
 		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::I))
+		{
+			std::cout << hero.shape.getPosition().x << ' ' << hero.shape.getPosition().y << std::endl;
+			std::cout << hero.vel.x << ' ' << hero.vel.y << std::endl;
+			std::cout << hero.health << std::endl;
+		}
 
-		if (pop_enemy>1)
+		for (int i=0; i<100; ++i) {
+			if (sf::Touch::isDown(i))
+			{
+				// touch 'i' is down
+				std::cout << "touch '" << i << "' is down" << std::endl;
+			}
+		}
+
+		if (pop_enemy > 1)
 		{
 			enemies.push_back(new Enemy({ 300,200 }, sf::Color::White));
 			--pop_enemy;
@@ -400,14 +418,22 @@ int main() {
 			--pop_enemy;
 		}
 
-
 		// if (goodboy.onGround) goodboy.vel += 5.f*(up);
 
-
 		for (it_enemy = enemies.begin(); it_enemy != enemies.end();++it_enemy) {
-			Entity *enemy = *it_enemy;
+			Enemy *enemy = *it_enemy;
+
+			if (enemy->ready_to_shoot) {
+				sf::Vector2f s;
+				if (enemy->vel.x >= 0) s = { 10.f, 0.f };
+				else  s = { -10.f, 0.f };
+				enemy_bullets.push_back(new Bullet(enemy->shape.getPosition(), s, sf::Color::Red));
+				enemy->ready_to_shoot = false;
+			}
+
+			// bullet hitz enemy
 			for (it_bullet = bullets.begin(); it_bullet != bullets.end();++it_bullet) {
-				Entity *bullet = *it_bullet;
+				Bullet *bullet = *it_bullet;
 					if (enemy->shape.getGlobalBounds().intersects(bullet->shape.getGlobalBounds())) {
 						//bullet->shape.setFillColor(enemy->shape.getFillColor());
 						bullet->exists = false;
@@ -418,41 +444,62 @@ int main() {
 					}
 
 			}
-		}
-
-		
-		for (it = bullets.begin(); it != bullets.end();) {
-			Entity *e = *it;
-
-			e->update();
-
-			if (e->exists) {
-				++it;
-			} else {
-				it = bullets.erase(it);
-				delete e;
+			// enemy hits hero
+			if (enemy->shape.getGlobalBounds().intersects(hero.shape.getGlobalBounds())) {
+				--hero.health;
+				enemy->exists = false;
+				++pop_enemy;
 			}
-
 		}
-		
 
-		for (it = enemies.begin(); it != enemies.end();) {
-			Entity *e = *it;
+		for (it_enemy_bullet = enemy_bullets.begin(); it_enemy_bullet != enemy_bullets.end(); ++it_enemy_bullet) {
+			Bullet *enemy_bullet = *it_enemy_bullet;
+			if (enemy_bullet->shape.getGlobalBounds().intersects(hero.shape.getGlobalBounds())) {
+				--hero.health;
+				enemy_bullet->exists = false;
+			}
+		}
+
+		for (it_enemy_bullet = enemy_bullets.begin(); it_enemy_bullet != enemy_bullets.end(); ) {
+			Bullet *e = *it_enemy_bullet;
 
 			e->update();
 
 			if (e->exists) {
-				++it;
+				++it_enemy_bullet;
 			}
 			else {
-				it = enemies.erase(it);
+				it_enemy_bullet = enemy_bullets.erase(it_enemy_bullet);
 				delete e;
 			}
-
 		}
 
+		for (it_bullet = bullets.begin(); it_bullet != bullets.end();) {
+			Bullet *e = *it_bullet;
 
+			e->update();
 
+			if (e->exists) {
+				++it_bullet;
+			} else {
+				it_bullet = bullets.erase(it_bullet);
+				delete e;
+			}
+		}
+
+		for (it_enemy = enemies.begin(); it_enemy != enemies.end();) {
+			Enemy *e = *it_enemy;
+
+			e->update();
+
+			if (e->exists) {
+				++it_enemy;
+			}
+			else {
+				it_enemy = enemies.erase(it_enemy);
+				delete e;
+			}
+		}
 
 		//goodboy.update();
 		
@@ -471,19 +518,21 @@ int main() {
 
 		window.clear();
 		
-		for (int i = 0; i < H; ++i)
+		
+
+		for (int i = view.getCenter().y / tileSize - 20; i < view.getCenter().y / tileSize + 20; ++i)
 		{
-			for (int j = 0; j < W; ++j)
+			for (int j = view.getCenter().x / tileSize - 20 ; j < view.getCenter().x / tileSize + 20; ++j)
 			{
-				if (TileMap[i][j] == 'B')
+				if (getTile(i,j) == 'B')
 				{
 					tmp_rect.setFillColor(sf::Color::Red);
 				}
-				if (TileMap[i][j] == 'S')
+				if (getTile(i,j) == 'S')
 				{
 					tmp_rect.setFillColor(sf::Color::Cyan);
 				}
-				if (TileMap[i][j] == ' ')
+				if (getTile(i,j) == ' ')
 				{
 					continue;
 				}
@@ -492,14 +541,17 @@ int main() {
 			}
 		}
 
-		for (it = bullets.begin(); it != bullets.end(); ++it) {
-			(*it)->draw(window);
+		for (it_bullet = bullets.begin(); it_bullet != bullets.end(); ++it_bullet) {
+			(*it_bullet)->draw(window);
 		}
 
-		for (it = enemies.begin(); it != enemies.end(); ++it) {
-			(*it)->draw(window);
+		for (it_enemy_bullet = enemy_bullets.begin(); it_enemy_bullet != enemy_bullets.end(); ++it_enemy_bullet) {
+			(*it_enemy_bullet)->draw(window);
 		}
 
+		for (it_enemy = enemies.begin(); it_enemy != enemies.end(); ++it_enemy) {
+			(*it_enemy)->draw(window);
+		}
 
 		// goodboy.draw(window);
 		hero.draw(window);
@@ -507,7 +559,6 @@ int main() {
 
 		window.display();
 	}
-
 
 	return 0;
 }
