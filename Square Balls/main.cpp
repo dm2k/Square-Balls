@@ -37,7 +37,7 @@ std::string TileMap[25] = {
 	"                                                                        BBB B                         SSS            ",
 	"                                                                       BBBBB                          SSS            ",
 	"BBBBBB                              BBBBBBBBBBBBBBBBB                  BBBBBB                         SSS            ",
-	"BSSSSS                                                                  BBB B                         SSS            ",
+	"BSSSSS                                                                 BBBB B                         SSS            ",
 	"               BBBBBBBBBBB                                                           BBBBBB           SSS            ",
 	"                                                                                                      SSS            ",
 	"B                                                                      BBBBBB                         SSS            ",
@@ -58,7 +58,7 @@ char getTile(int i, int j) {
 	//auto t = std::div(i, H);
 	//auto s = std::div(j, W);
 	//return TileMap[t.quot >= 0 ? t.rem : t.rem + H ][s.quot >= 0 ? s.rem : s.rem + W];
-	if (i < 0 || j < 0)
+	if (i <= 0 || j <= 0)
 		return 'B';
 	else
 		return TileMap[i % H ][j % W ];
@@ -68,7 +68,7 @@ float ground = H * tileSize,
 	gt = 0.01f,
 	rub = 0.8f;
 
-
+int enemy_counter = 0;
 
 sf::RectangleShape tmp_rect({ tileSize, tileSize });
 
@@ -190,10 +190,12 @@ public:
 	bool alive;
 	bool ready_to_shoot;
 	int reload_timer;
-
+	int id;
 
 	Enemy(sf::Vector2f pos = { 0.f, 0.f }, sf::Color ecolor = sf::Color::Blue) {
 		exists = true;
+		id = enemy_counter;
+		++enemy_counter;
 		shape.setPosition(pos);
 		shape.setSize({ tileSize / 4 * 3, tileSize / 4 * 3 });
 		shape.setFillColor(ecolor);
@@ -227,7 +229,7 @@ public:
 		//else
 		//vel.x *= rub * 1.5f;
 
-
+		/*
 		if (!onGround  && shape.getPosition().y >= ground) {
 			shape.move(0, ground - shape.getPosition().y);
 			onGround = true;
@@ -238,11 +240,15 @@ public:
 			vel.y += gt;
 			shape.move(0, vel.y);
 		}
+		*/
+
+		vel.y += gt;
+		shape.move(0, vel.y);
 
 		isHit = Collision(1);
 
 		if (isHit & 4) {
-			vel.y = 3.f * (up.y);
+			vel.y = (id % 5 + 1) * (up.y);
 		}
 	};
 };
@@ -365,6 +371,15 @@ int main() {
 		{
 			if (event.type == sf::Event::Closed)
 				window.close();
+			if (event.key.code == sf::Keyboard::Num1)
+			{
+				view.setSize(2.f * view.getSize());
+			}
+			if (event.key.code == sf::Keyboard::Num2)
+			{
+				view.setSize(0.5f * view.getSize());
+			}
+
 		}
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
