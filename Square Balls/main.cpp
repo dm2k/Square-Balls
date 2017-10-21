@@ -253,7 +253,8 @@ public:
 	};
 };
 
-const int weapon_delay = 10;
+const int weapon_delay = 5;
+const bool GRAVITY = false;
 
 class Player: public Entity
 {
@@ -263,6 +264,9 @@ public:
 	int weapon_timer;
 	bool weapon_ready;
 	int health;
+	std::map<std::string, bool> key;
+    
+	std::list<Bullet*> * bullets;
 
 	Player(sf::Vector2f pos = {0.f, 0.f}) {
 		exists = true;
@@ -275,6 +279,10 @@ public:
 		weapon_timer = weapon_delay;
 	}
 
+	void link_bullets(std::list<Bullet*> * _bullets) {
+		bullets = _bullets;
+	}
+
 	void update() {
 
 		if (!weapon_ready) {
@@ -285,6 +293,47 @@ public:
 				weapon_timer = weapon_delay;
 			}
 		}
+
+
+		if (key["L"])
+		{
+			vel += left;
+		}
+		if (key["R"])
+		{
+			vel += right;
+		}
+		if (key["Up"])
+		{
+			if (GRAVITY) {
+				if (onGround) { onGround = false; vel = 5.f*(up); }
+			}
+			else {
+				vel += up;
+			}
+		}
+		if (key["Down"])
+		{
+			if (GRAVITY) {
+				vel += (down);
+			}
+			else {
+				vel += (down);
+			}
+		}
+		if (key["Space"]) {
+			//maimer.shape.setPosition( hero.shape.getPosition());
+			//maimer.active = true;
+			if (weapon_ready) {
+				sf::Vector2f s;
+				if (dir == 1.f) s = { 10.f, 0.f };
+				else  s = { -10.f, 0.f };
+				bullets->push_back(new Bullet(shape.getPosition(), s));
+				weapon_ready = false;
+			}
+		}
+
+		key["R"] = key["L"] = key["Up"] = key["Down"] = key["Space"] = false;
 
 		if (vel.x != 0) {
 			dir = vel.x > 0 ? 1.f : -1.f;
@@ -311,23 +360,33 @@ public:
 			shape.move(0, vel.y);
 		}
 		*/	
+		if (GRAVITY) {
+			if (!onGround) {
+				shape.move(0, vel.y);
+				vel.y += gt;
+			}
 
-		if (!onGround) {
-			shape.move(0, vel.y);
-			vel.y += gt;
-		}
+			int ay = Collision(1);
 
-		int ay = Collision(1);
-
-		if (ay == 4 || ay == 8) {
-			vel.y = 0.f;
-			onGround = true;
+			if (ay == 4 || ay == 8) {
+				vel.y = 0.f;
+				onGround = true;
+			}
+			else {
+				onGround = false;
+			}
 		}
 		else {
-			onGround = false;
+			shape.move(0, vel.y);
+
+			Collision(1);
+
+			vel.y *= rub;
+
 		}
 	};
 };
+
 
 int main() {
 
@@ -354,6 +413,8 @@ int main() {
 
 	std::list<Bullet*> bullets;
 	std::list<Bullet*>::iterator it_bullet;
+	hero.link_bullets(&bullets);
+
 
 	std::list<Bullet*> enemy_bullets;
 	std::list<Bullet*>::iterator it_enemy_bullet;
@@ -371,52 +432,34 @@ int main() {
 		{
 			if (event.type == sf::Event::Closed)
 				window.close();
-			if (event.key.code == sf::Keyboard::Num1)
+			if (event.KeyPressed && event.key.code == sf::Keyboard::Num1)
 			{
 				view.setSize(2.f * view.getSize());
 			}
-			if (event.key.code == sf::Keyboard::Num2)
+			if (event.KeyPressed && event.key.code == sf::Keyboard::Num2)
 			{
 				view.setSize(0.5f * view.getSize());
 			}
-
 		}
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-		{
-			hero.vel += left;
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-		{
-			hero.vel += right;
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-		{
-			if (hero.onGround) { hero.onGround = false; hero.vel = 5.f*(up); }
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-		{
-			hero.vel += (down);
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-			//maimer.shape.setPosition( hero.shape.getPosition());
-			//maimer.active = true;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) ||
+			sf::Keyboard::isKeyPressed(sf::Keyboard::A)) hero.key["L"] = true;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || 
+			sf::Keyboard::isKeyPressed(sf::Keyboard::D)) hero.key["R"] = true;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) ||
+			sf::Keyboard::isKeyPressed(sf::Keyboard::W)) hero.key["Up"] = true;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || 
+			sf::Keyboard::isKeyPressed(sf::Keyboard::S)) hero.key["Down"] = true;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) hero.key["Space"] = true;
 
-			if (hero.weapon_ready) {
-				sf::Vector2f s;
-				if (hero.dir == 1.f) s = { 10.f, 0.f };
-				else  s = { -10.f, 0.f };
-				bullets.push_back(new Bullet(hero.shape.getPosition(), s));
-				hero.weapon_ready = false;
-			}
-		}
+
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::I))
 		{
 			std::cout << hero.shape.getPosition().x << ' ' << hero.shape.getPosition().y << std::endl;
 			std::cout << hero.vel.x << ' ' << hero.vel.y << std::endl;
 			std::cout << hero.health << std::endl;
 		}
-
+		
 		for (int i=0; i<100; ++i) {
 			if (sf::Touch::isDown(i))
 			{
@@ -517,6 +560,8 @@ int main() {
 		}
 
 		//goodboy.update();
+
+		//playercommand.clean();
 		
 		hero.update();
 		
